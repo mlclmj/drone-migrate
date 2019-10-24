@@ -276,7 +276,7 @@ type (
 
 	// SecretV1 is a Drone 1.x secret.
 	SecretV1 struct {
-		ID              int64  `meddler:"secret_id"`
+		ID              int64  `meddler:"secret_id,pk"`
 		RepoID          int64  `meddler:"secret_repo_id"`
 		Name            string `meddler:"secret_name"`
 		Data            string `meddler:"secret_data"`
