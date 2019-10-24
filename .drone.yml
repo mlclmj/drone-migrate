@@ -16,7 +16,7 @@ steps:
   - name: publish
     image: plugins/docker
     settings:
-      repo: drone/migrate
+      repo: malcolmjones/drone-migrate
       auto_tag: true
       username:
         from_secret: docker_username
