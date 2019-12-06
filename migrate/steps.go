@@ -10,11 +10,11 @@ import (
 
 // MigrateSteps migrates the steps from the V0
 // database to the V1 database.
-func MigrateSteps(source, target *sql.DB) error {
+func MigrateSteps(source, target *sql.DB, buildId int64) error {
 	stepsV0 := []*StepV0{}
 
 	// 1. load all stages from the V0 database.
-	err := meddler.QueryAll(source, &stepsV0, stepListQuery)
+	err := meddler.QueryAll(source, &stepsV0, stepListQuery, buildId)
 	if err != nil {
 		return err
 	}
@@ -84,6 +84,8 @@ INNER JOIN builds ON procs.proc_build_id = builds.build_id
 INNER JOIN repos ON builds.build_repo_id = repos.repo_id
 WHERE proc_ppid != 0
   AND repo_user_id > 0
+	AND builds.build_id > ?
+LIMIT 0, 1
 `
 
 const updateStepSeq = `

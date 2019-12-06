@@ -104,9 +104,9 @@ func main() {
 			EnvVar: "S3_PREFIX",
 		},
 		cli.Int64Flag{
-			Name:   "s3-resume",
-			Usage:  "resume uploading logs at this step id (optional)",
-			EnvVar: "S3_RESUME",
+			Name:   "build-id",
+			Usage:  "start uploading builds from this build id (optional)",
+			EnvVar: "BUILD_ID",
 		},
 		cli.BoolTFlag{
 			Name:   "debug",
@@ -318,7 +318,9 @@ func main() {
 					return err
 				}
 
-				return migrate.MigrateBuilds(source, target)
+				buildId := c.GlobalInt64("build-id")
+
+				return migrate.MigrateBuilds(source, target, buildId)
 			},
 		},
 
@@ -344,7 +346,9 @@ func main() {
 					return err
 				}
 
-				return migrate.MigrateStages(source, target)
+				buildId := c.GlobalInt64("build-id")
+
+				return migrate.MigrateStages(source, target, buildId)
 			},
 		},
 		{
@@ -394,7 +398,9 @@ func main() {
 					return err
 				}
 
-				return migrate.MigrateLogs(source, target)
+				buildId := c.GlobalInt64("build-id")
+
+				return migrate.MigrateLogs(source, target, buildId)
 			},
 		},
 		{
@@ -410,10 +416,10 @@ func main() {
 					return err
 				}
 
-				resume := c.GlobalInt64("s3-resume")
+				buildId := c.GlobalInt64("build-id")
 				bucket := c.GlobalString("s3-bucket")
 				prefix := c.GlobalString("s3-prefix")
-				return migrate.MigrateLogsS3(source, bucket, prefix, resume)
+				return migrate.MigrateLogsS3(source, bucket, prefix, buildId)
 			},
 		},
 		{

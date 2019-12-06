@@ -15,11 +15,11 @@ import (
 
 // MigrateLogs migrates the steps from the V0
 // database to the V1 database.
-func MigrateLogs(source, target *sql.DB) error {
+func MigrateLogs(source, target *sql.DB, buildId int64) error {
 	stepsV0 := []*StepV0{}
 
 	// 1. load all stages from the V0 database.
-	err := meddler.QueryAll(source, &stepsV0, stepListQueryLogs)
+	err := meddler.QueryAll(source, &stepsV0, stepListQueryLogs, buildId)
 	if err != nil {
 		return err
 	}
@@ -64,11 +64,11 @@ func MigrateLogs(source, target *sql.DB) error {
 }
 
 // MigrateLogsS3 migrates the steps from the V0 database to S3.
-func MigrateLogsS3(source *sql.DB, bucket, prefix string, resume int64) error {
+func MigrateLogsS3(source *sql.DB, bucket, prefix string, buildId int64) error {
 	stepsV0 := []*StepV0{}
 
 	// 1. load all stages from the V0 database.
-	err := meddler.QueryAll(source, &stepsV0, stepListQueryLogs)
+	err := meddler.QueryAll(source, &stepsV0, stepListQueryLogs, buildId)
 	if err != nil {
 		return err
 	}
@@ -98,9 +98,6 @@ func MigrateLogsS3(source *sql.DB, bucket, prefix string, resume int64) error {
 		}
 		if len(logsV0.Data) == 0 {
 			logrus.WithError(err).Warnf("skipping empty logs for step: id: %d", stepV0.ID)
-			continue
-		}
-		if resume >= stepV0.ID {
 			continue
 		}
 
@@ -138,5 +135,7 @@ INNER JOIN builds ON procs.proc_build_id = builds.build_id
 INNER JOIN repos ON builds.build_repo_id = repos.repo_id
 WHERE proc_ppid != 0
   AND repo_user_id > 0
+	AND builds.build_id > ?
 ORDER BY proc_id ASC
+LIMIT 0, 1
 `
