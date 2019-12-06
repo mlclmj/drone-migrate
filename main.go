@@ -373,7 +373,9 @@ func main() {
 					return err
 				}
 
-				return migrate.MigrateSteps(source, target)
+				buildId := c.GlobalInt64("build-id")
+
+				return migrate.MigrateSteps(source, target, buildId)
 			},
 		},
 		{
