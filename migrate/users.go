@@ -66,7 +66,7 @@ func MigrateUsers(source, target *sql.DB) error {
 
 		if err := meddler.Insert(tx, "users", userV1); err != nil {
 			fmt.Printf("%+v", err)
-			if err != "meddler.Insert: DB error in Exec: pq: duplicate key value violates unique constraint \"users_pkey\"" {
+			if err.Error() != "meddler.Insert: DB error in Exec: pq: duplicate key value violates unique constraint \"users_pkey\"" {
 				log.WithError(err).Errorln("migration failed")
 				return err
 			} else {
