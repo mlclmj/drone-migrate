@@ -136,7 +136,7 @@ ALTER SEQUENCE users_user_id_seq
 RESTART WITH %d
 `
 
-const userInsertQuery = `
+const usersInsertQuery = `
 INSERT INTO users
 VALUES (%s)
 ON CONFLICT DO NOTHING
