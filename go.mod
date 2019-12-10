@@ -10,7 +10,8 @@ require (
 	github.com/joho/godotenv v1.3.0
 	github.com/lib/pq v1.0.0
 	github.com/mattn/go-sqlite3 v1.10.0
-	github.com/russross/meddler v0.0.0-20181122144826-87a225081a7c
+	github.com/nbio/st v0.0.0-20140626010706-e9e8d9816f32 // indirect
+	github.com/russross/meddler v0.0.0-20191023082315-51a972bb8fb2
 	github.com/sirupsen/logrus v1.3.0
 	github.com/urfave/cli v1.20.0
 	golang.org/x/oauth2 v0.0.0-20190115181402-5dab4167f31c
