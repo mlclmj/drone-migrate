@@ -81,7 +81,7 @@ func MigrateUsers(source, target *sql.DB) error {
 		prepared := fmt.Sprintf(usersInsertQuery, qs...)
 		log.Debugln(fmt.Sprintf("%v", prepared))
 
-		result := interface{}
+		var result interface{}
 
 		if err := meddler.QueryRow(tx, &result, prepared, values...); err != nil {
 			log.WithError(err).Errorln("migration failed")
