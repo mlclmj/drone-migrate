@@ -15,3 +15,5 @@ require (
 	github.com/urfave/cli v1.20.0
 	golang.org/x/oauth2 v0.0.0-20190115181402-5dab4167f31c
 )
+
+go 1.13

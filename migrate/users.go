@@ -69,7 +69,7 @@ func MigrateUsers(source, target *sql.DB) error {
 		// 	return err
 		// }
 
-		qs, err := meddler.PlaceHoldersString(userV1)
+		qs, err := meddler.PlaceHoldersString(userV1, true)
 		if err != nil {
 			log.WithError(err).Errorln("placeholder generation error")
 		}
