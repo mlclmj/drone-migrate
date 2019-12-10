@@ -71,11 +71,11 @@ func MigrateUsers(source, target *sql.DB) error {
 
 		qs, err := meddler.PlaceHoldersString(userV1)
 		if err != nil {
-			log.WithError(err).ErrorLn("placeholder generation error")
+			log.WithError(err).Errorln("placeholder generation error")
 		}
 		values, err := meddler.Values(userV1, true)
 		if err != nil {
-			log.WithError(err).ErrorLn("values preparation error")
+			log.WithError(err).Errorln("values preparation error")
 		}
 
 		prepared := fmt.Sprintf(usersInsertQuery, qs...)
