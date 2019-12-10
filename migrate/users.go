@@ -86,11 +86,18 @@ func MigrateUsers(source, target *sql.DB) error {
 		prepared := fmt.Sprintf(usersInsertQuery, qs)
 		log.Debugln(fmt.Sprintf("%v", prepared))
 
-		if _, err := tx.Exec(prepared, values...); err != nil {
+		result, err := tx.Exec(prepared, values...)
+		if err != nil {
 			log.WithError(err).Errorln("migration failed")
 			return err
 		}
-		
+		rows, err := result.RowsAffected()
+		if err != nil {
+			log.WithError(err).Errorln("couldn't get resulting rows")
+		} else if rows == 0 {
+			log.Debugln("skipped existing user")
+		}
+
 		log.Debugln("migration complete")
 	}
 
