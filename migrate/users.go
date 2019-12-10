@@ -64,16 +64,6 @@ func MigrateUsers(source, target *sql.DB) error {
 			Hash:      uniuri.NewLen(32),
 		}
 
-		// if err := meddler.Insert(tx, "users", userV1); err != nil {
-		// 	fmt.Printf("%+v", err)
-		// 	if err.Error() != "meddler.Insert: DB error in Exec: pq: duplicate key value violates unique constraint \"users_pkey\"" {
-		// 		log.WithError(err).Errorln("migration failed")
-		// 		return err
-		// 	} else {
-		// 		log.Debugln("user with matching id already exists")
-		// 	}
-		// }
-
 		qs, err := meddler.PlaceholdersString(userV1, true)
 		if err != nil {
 			log.WithError(err).Errorln("placeholder generation error")
@@ -83,9 +73,7 @@ func MigrateUsers(source, target *sql.DB) error {
 			log.WithError(err).Errorln("values preparation error")
 		}
 
-		prepared := fmt.Sprintf(usersInsertQuery, qs)
-
-		result, err := tx.Exec(prepared, values...)
+		result, err := tx.Exec(fmt.Sprintf("INSERT INTO users VALUES (%s) ON CONFLICT DO NOTHING", qs), values...)
 		if err != nil {
 			log.WithError(err).Errorln("migration failed")
 			return err
@@ -94,7 +82,7 @@ func MigrateUsers(source, target *sql.DB) error {
 		if err != nil {
 			log.WithError(err).Errorln("couldn't get resulting rows")
 		} else if rows == 0 {
-			log.Debugln("skipped existing user")
+			log.Debugln("skipped existing user with the same id")
 		}
 
 		log.Debugln("migration complete")
@@ -141,10 +129,4 @@ FROM
 const updateUserSeq = `
 ALTER SEQUENCE users_user_id_seq
 RESTART WITH %d
-`
-
-const usersInsertQuery = `
-INSERT INTO users
-VALUES (%s)
-ON CONFLICT DO NOTHING
 `
