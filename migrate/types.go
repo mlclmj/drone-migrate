@@ -295,7 +295,7 @@ type (
 		Password     string `meddler:"registry_password"`
 		Token        string `meddler:"registry_token"`
 	}
-	
+
 	// RegistryV1 is a Drone 1.x registry -- note that in 1.x these are stored in the secrets table, hence the similar format
 	RegistryV1 struct {
 		ID              int64  `meddler:"secret_id,pk"`
@@ -317,6 +317,11 @@ type (
 		Username string `json:"username,omitempty"`
 		Password string `json:"password,omitempty"`
 		Auth     string `json:"auth,omitempty"`
+	}
+
+	InsertResponse struct {
+		OID 	int64	`meddler:"oid"`
+		Count	int64	`meddler:"count"`
 	}
 )
 
