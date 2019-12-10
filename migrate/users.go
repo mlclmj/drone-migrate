@@ -84,7 +84,6 @@ func MigrateUsers(source, target *sql.DB) error {
 		}
 
 		prepared := fmt.Sprintf(usersInsertQuery, qs)
-		log.Debugln(fmt.Sprintf("%v", prepared))
 
 		result, err := tx.Exec(prepared, values...)
 		if err != nil {
