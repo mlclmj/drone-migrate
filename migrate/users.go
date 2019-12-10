@@ -64,36 +64,31 @@ func MigrateUsers(source, target *sql.DB) error {
 			Hash:      uniuri.NewLen(32),
 		}
 
-		if err := meddler.Insert(tx, "users", userV1); err != nil {
-			fmt.Printf("%+v", err)
-			if err.Error() != "meddler.Insert: DB error in Exec: pq: duplicate key value violates unique constraint \"users_pkey\"" {
-				log.WithError(err).Errorln("migration failed")
-				return err
-			} else {
-				log.Debugln("user with matching id already exists")
-			}
+		// if err := meddler.Insert(tx, "users", userV1); err != nil {
+		// 	fmt.Printf("%+v", err)
+		// 	if err.Error() != "meddler.Insert: DB error in Exec: pq: duplicate key value violates unique constraint \"users_pkey\"" {
+		// 		log.WithError(err).Errorln("migration failed")
+		// 		return err
+		// 	} else {
+		// 		log.Debugln("user with matching id already exists")
+		// 	}
+		// }
+
+		qs, err := meddler.PlaceholdersString(userV1, true)
+		if err != nil {
+			log.WithError(err).Errorln("placeholder generation error")
+		}
+		values, err := meddler.Values(userV1, true)
+		if err != nil {
+			log.WithError(err).Errorln("values preparation error")
 		}
 
-		// qs, err := meddler.PlaceholdersString(userV1, true)
-		// if err != nil {
-		// 	log.WithError(err).Errorln("placeholder generation error")
-		// }
-		// values, err := meddler.Values(userV1, true)
-		// if err != nil {
-		// 	log.WithError(err).Errorln("values preparation error")
-		// }
-		//
-		// prepared := fmt.Sprintf(usersInsertQuery, qs)
-		// log.Debugln(fmt.Sprintf("%v", prepared))
-		//
-		// result := InsertResponse{}
-		//
-		// if err := meddler.QueryRow(tx, &result, prepared, values...); err != nil {
-		// 	log.WithError(err).Errorln("migration failed")
-		// 	return err
-		// }
-		//
-		// log.Debugln(fmt.Sprintf("%+v", result))
+		prepared := fmt.Sprintf(usersInsertQuery, qs)
+		log.Debugln(fmt.Sprintf("%v", prepared))
+
+		result := tx.QueryRow(prepared, values...)
+
+		log.Debugln(fmt.Sprintf("%+v", result))
 
 		log.Debugln("migration complete")
 	}
