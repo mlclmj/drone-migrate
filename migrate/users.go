@@ -82,7 +82,7 @@ func MigrateUsers(source, target *sql.DB) error {
 		if err != nil {
 			log.WithError(err).Errorln("couldn't get resulting rows")
 		} else if rows == 0 {
-			log.Debugln("skipped existing user with the same id")
+			log.Debugln("skipped existing record with the same id")
 		}
 
 		log.Debugln("migration complete")
