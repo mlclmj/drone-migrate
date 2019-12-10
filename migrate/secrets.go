@@ -53,10 +53,32 @@ func MigrateSecrets(source, target *sql.DB) error {
 			}
 		}
 
-		if err := meddler.Insert(tx, "secrets", secretV1); err != nil {
+		// if err := meddler.Insert(tx, "secrets", secretV1); err != nil {
+		// 	log.WithError(err).Errorln("migration failed")
+		// 	return err
+		// }
+
+		qs, err := meddler.PlaceholdersString(secretV1, true)
+		if err != nil {
+			log.WithError(err).Errorln("placeholder generation error")
+		}
+		values, err := meddler.Values(secretV1, true)
+		if err != nil {
+			log.WithError(err).Errorln("values preparation error")
+		}
+
+		result, err := tx.Exec(fmt.Sprintf("INSERT INTO secrets VALUES (%s) ON CONFLICT DO NOTHING", qs), values...)
+		if err != nil {
 			log.WithError(err).Errorln("migration failed")
 			return err
 		}
+		rows, err := result.RowsAffected()
+		if err != nil {
+			log.WithError(err).Errorln("couldn't get resulting rows")
+		} else if rows == 0 {
+			log.Debugln("skipped existing record with the same id")
+		}
+
 
 		log.Debugln("migration complete")
 	}
