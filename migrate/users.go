@@ -64,10 +64,29 @@ func MigrateUsers(source, target *sql.DB) error {
 			Hash:      uniuri.NewLen(32),
 		}
 
-		if err := meddler.Insert(tx, "users", userV1); err != nil {
+		// if err := meddler.Insert(tx, "users", userV1); err != nil {
+		// 	log.WithError(err).Errorln("migration failed")
+		// 	return err
+		// }
+
+		qs, err := meddler.PlaceHoldersString(userV1)
+		if err != nil {
+			log.WithError(err).ErrorLn("placeholder generation error")
+		}
+		values, err := meddler.Values(userV1, true)
+		if err != nil {
+			log.WithError(err).ErrorLn("values preparation error")
+		}
+
+		prepared := fmt.Sprintf(usersInsertQuery, qs...)
+		log.Debugln(fmt.Sprintf("%v", prepared))
+
+		if err := meddler.QueryRow(tx, &result, prepared, values...); err != nil {
 			log.WithError(err).Errorln("migration failed")
 			return err
 		}
+
+		log.Debugln(fmt.Sprintf("%+v", result))
 
 		log.Debugln("migration complete")
 	}
@@ -113,4 +132,10 @@ FROM
 const updateUserSeq = `
 ALTER SEQUENCE users_user_id_seq
 RESTART WITH %d
+`
+
+const userInsertQuery = `
+INSERT INTO users
+VALUES (%s)
+ON CONFLICT DO NOTHING
 `
