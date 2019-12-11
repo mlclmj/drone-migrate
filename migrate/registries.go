@@ -121,17 +121,18 @@ func MigrateRegistries(source, target *sql.DB) error {
 		if err != nil && err.Error() == "sql: no rows in result set" {
 			// perform an insert if we didn't find an existing secret for this repo
 			insert = true
-			log.Debugln("inserting new registry secret")
 		} else if err != nil {
 			log.WithError(err).Errorln("error querying for existing registry credentials")
 		}
 
 		if insert {
+			log.Debugln("inserting new registry secret")
 			if err := meddler.Insert(tx, "secrets", registryV1); err != nil {
 				log.WithError(err).Errorln("failed to insert new registry credential secret")
 				return err
 			}
 		} else {
+			log.Debugln("updating existing registry secret")
 			// we're just updating the data value of the existing registry secret in case it changed
 			existing.Data = registryV1.Data
 			if err := meddler.Update(tx, "secrets", existing); err != nil {
@@ -157,5 +158,5 @@ WHERE repo_user_id > 0
 `
 
 const registryFindExistingQuery = `
-SELECT * FROM secrets WHERE secret_repo_id = ? AND secret_name = ?
+SELECT * FROM secrets WHERE secret_repo_id = '?' AND secret_name = '?'
 `
