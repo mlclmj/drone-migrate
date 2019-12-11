@@ -87,6 +87,10 @@ func MigrateRepos(source, target *sql.DB) error {
 			repoV1.IgnorePulls = true
 		}
 
+		cols, err := meddler.ColumnsQuoted(repoV1, true)
+		if err != nil {
+			log.WithError(err).Errorln("column generation error")
+		}
 		qs, err := meddler.PlaceholdersString(repoV1, true)
 		if err != nil {
 			log.WithError(err).Errorln("placeholder generation error")
@@ -96,7 +100,7 @@ func MigrateRepos(source, target *sql.DB) error {
 			log.WithError(err).Errorln("values preparation error")
 		}
 
-		result, err := tx.Exec(fmt.Sprintf("INSERT INTO repos VALUES (%s) ON CONFLICT DO NOTHING", qs), values...)
+		result, err := tx.Exec(fmt.Sprintf("INSERT INTO repos (%s) VALUES (%s) ON CONFLICT DO NOTHING", cols, qs), values...)
 		if err != nil {
 			log.WithError(err).Errorln("migration failed")
 			return err

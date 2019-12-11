@@ -64,6 +64,10 @@ func MigrateUsers(source, target *sql.DB) error {
 			Hash:      uniuri.NewLen(32),
 		}
 
+		cols, err := meddler.ColumnsQuoted(userV1, true)
+		if err != nil {
+			log.WithError(err).Errorln("column generation error")
+		}
 		qs, err := meddler.PlaceholdersString(userV1, true)
 		if err != nil {
 			log.WithError(err).Errorln("placeholder generation error")
@@ -73,7 +77,7 @@ func MigrateUsers(source, target *sql.DB) error {
 			log.WithError(err).Errorln("values preparation error")
 		}
 
-		result, err := tx.Exec(fmt.Sprintf("INSERT INTO users VALUES (%s) ON CONFLICT DO NOTHING", qs), values...)
+		result, err := tx.Exec(fmt.Sprintf("INSERT INTO users (%s) VALUES (%s) ON CONFLICT DO NOTHING", cols, qs), values...)
 		if err != nil {
 			log.WithError(err).Errorln("migration failed")
 			return err

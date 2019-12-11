@@ -58,6 +58,10 @@ func MigrateSecrets(source, target *sql.DB) error {
 		// 	return err
 		// }
 
+		cols, err := meddler.ColumnsQuoted(secretV1, true)
+		if err != nil {
+			log.WithError(err).Errorln("column generation error")
+		}
 		qs, err := meddler.PlaceholdersString(secretV1, true)
 		if err != nil {
 			log.WithError(err).Errorln("placeholder generation error")
@@ -67,7 +71,7 @@ func MigrateSecrets(source, target *sql.DB) error {
 			log.WithError(err).Errorln("values preparation error")
 		}
 
-		result, err := tx.Exec(fmt.Sprintf("INSERT INTO secrets VALUES (%s) ON CONFLICT DO NOTHING", qs), values...)
+		result, err := tx.Exec(fmt.Sprintf("INSERT INTO (%s) secrets VALUES (%s) ON CONFLICT DO NOTHING", cols, qs), values...)
 		if err != nil {
 			log.WithError(err).Errorln("migration failed")
 			return err
