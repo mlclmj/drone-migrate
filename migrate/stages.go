@@ -96,7 +96,6 @@ INNER JOIN repos ON builds.build_repo_id = repos.repo_id
 WHERE proc_ppid = 0
   AND repo_user_id > 0
 	AND builds.build_id > ?
-LIMIT 0, 1
 `
 
 const updateStageSeq = `

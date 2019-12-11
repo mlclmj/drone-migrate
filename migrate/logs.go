@@ -137,5 +137,4 @@ WHERE proc_ppid != 0
   AND repo_user_id > 0
 	AND builds.build_id > ?
 ORDER BY proc_id ASC
-LIMIT 0, 1
 `

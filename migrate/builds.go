@@ -14,7 +14,7 @@ func MigrateBuilds(source, target *sql.DB, buildId int64) error {
 	buildsV0 := []*BuildV0{}
 
 	// 1. load all repos from the V0 database.
-	err := meddler.QueryAll(source, &buildsV0, "select * from builds where build_id > ? limit 0, 1", buildId)
+	err := meddler.QueryAll(source, &buildsV0, "select * from builds where build_id > ?", buildId)
 	if err != nil {
 		return err
 	}
