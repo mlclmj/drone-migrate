@@ -159,5 +159,5 @@ WHERE repo_user_id > 0
 `
 
 const registryFindExistingQuery = `
-SELECT * FROM secrets WHERE secret_repo_id = '?' AND secret_name = '?'
+SELECT * FROM secrets WHERE secret_repo_id = ? AND secret_name = '?'
 `
