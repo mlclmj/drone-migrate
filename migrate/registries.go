@@ -79,44 +79,9 @@ func MigrateRegistries(source, target *sql.DB) error {
 			PullRequest: true,
 		}
 
-		// row, err := tx.QueryRow("SELECT COUNT(*) FROM secrets WHERE secret_repo_id = ? AND secret_name = ?", registryV1.RepoId, registryV1.Name)
-		// if err != nil {
-		// 	log.WithError(err).Errorln("error checking for existing registry secret")
-		// }
-		// var count int64
-		// if err := row.Scan(&count); err != nil {
-		// 	log.WithError(err).Errorln("error getting count of existing registry secrets")
-		// }
-		//
-		// // This is BAD
-		// if count > 1 {
-		// 	err = errors.New("duplicate .dockerconfigjson secrets exist for this repo in the target db")
-		// 	log.WithError(err).Errorln("registry migration failed due to data issue")
-		// 	return err
-		// }
-		//
-		// if count > 0 {
-		// 	// meddler's update is too much work to use here
-		// 	result, err := tx.Exec(
-		// 		"UPDATE secrets SET secret_data = ? WHERE secret_name = ? AND secret_repo_id = ? LIMIT 1",
-		// 		registryV1.Data,
-		// 		registryV1.Name,
-		// 		registryV1.RepoID
-		// 	)
-		// 	if err != nil {
-		// 		log.WithError(err).Errorln("error updating existing registry configuration")
-		// 		return err
-		// 	}
-		// 	rows, err := result.RowsAffected()
-		// 	if err != nil {
-		// 		log.WithError(err).Errorln("couldn't get resulting rows")
-		// 	} else if rows == 1 {
-		// 		log.Debugln("successfully updated existing secret")
-		// 	}
-		// }
-
 		var insert bool
 		existing := &RegistryV1{}
+		// check for existing and update if it exists--upsert doesn't work because the pk can't be determined based on the source relation
 		err = meddler.QueryRow(tx, existing, fmt.Sprintf(registryFindExistingQuery, registryV1.RepoID, registryV1.Name))
 		if err != nil && err.Error() == "sql: no rows in result set" {
 			// perform an insert if we didn't find an existing secret for this repo
