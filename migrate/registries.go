@@ -123,6 +123,7 @@ func MigrateRegistries(source, target *sql.DB) error {
 			insert = true
 		} else if err != nil {
 			log.WithError(err).Errorln("error querying for existing registry credentials")
+			return err
 		}
 
 		if insert {
