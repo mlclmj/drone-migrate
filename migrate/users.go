@@ -64,29 +64,27 @@ func MigrateUsers(source, target *sql.DB) error {
 			Hash:      uniuri.NewLen(32),
 		}
 
-		cols, err := meddler.ColumnsQuoted(userV1, true)
-		if err != nil {
-			log.WithError(err).Errorln("column generation error")
-		}
-		qs, err := meddler.PlaceholdersString(userV1, true)
-		if err != nil {
-			log.WithError(err).Errorln("placeholder generation error")
-		}
-		values, err := meddler.Values(userV1, true)
-		if err != nil {
-			log.WithError(err).Errorln("values preparation error")
-		}
-
-		result, err := tx.Exec(fmt.Sprintf("INSERT INTO users (%s) VALUES (%s) ON CONFLICT DO NOTHING", cols, qs), values...)
-		if err != nil {
-			log.WithError(err).Errorln("migration failed")
+		var insert bool
+		err = meddler.QueryRow(tx, &UserV1{}, fmt.Sprintf("SELECT * FROM users WHERE user_id = %d", userV1.ID))
+		if err != nil && err.Error() == "sql: no rows in result set" {
+			insert = true
+		} else if err != nil {
+			log.WithError(err).Errorln("error querying for existing user")
 			return err
 		}
-		rows, err := result.RowsAffected()
-		if err != nil {
-			log.WithError(err).Errorln("couldn't get resulting rows")
-		} else if rows == 0 {
-			log.Debugln("skipped existing record with the same id")
+
+		if insert {
+			log.Debugln("inserting new user")
+			if err := meddler.Insert(tx, "users", userV1); err != nil {
+				log.WithError(err).Errorln("failed to insert new user")
+				return err
+			}
+		} else {
+			log.Debugln("updating existing user")
+			if err := meddler.Update(tx, "users", userV1); err != nil {
+				log.WithError(err).Errorln("failed to update existing user")
+				return err
+			}
 		}
 
 		log.Debugln("migration complete")
