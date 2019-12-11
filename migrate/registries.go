@@ -117,7 +117,7 @@ func MigrateRegistries(source, target *sql.DB) error {
 
 		var insert bool
 		existing := &RegistryV1{}
-		err = meddler.QueryRow(tx, existing, registryFindExistingQuery, registryV1.RepoID, registryV1.Name)
+		err = meddler.QueryRow(tx, existing, fmt.Sprintf(registryFindExistingQuery, registryV1.RepoID, registryV1.Name))
 		if err != nil && err.Error() == "sql: no rows in result set" {
 			// perform an insert if we didn't find an existing secret for this repo
 			insert = true
@@ -159,5 +159,5 @@ WHERE repo_user_id > 0
 `
 
 const registryFindExistingQuery = `
-SELECT * FROM secrets WHERE secret_repo_id = ? AND secret_name = '?'
+SELECT * FROM secrets WHERE secret_repo_id = %d AND secret_name= '%s'
 `
