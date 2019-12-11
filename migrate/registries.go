@@ -79,10 +79,67 @@ func MigrateRegistries(source, target *sql.DB) error {
 			PullRequest: true,
 		}
 
-		if err := meddler.Insert(tx, "secrets", registryV1); err != nil {
-			log.WithError(err).Errorln("migration failed")
-			return err
+		// row, err := tx.QueryRow("SELECT COUNT(*) FROM secrets WHERE secret_repo_id = ? AND secret_name = ?", registryV1.RepoId, registryV1.Name)
+		// if err != nil {
+		// 	log.WithError(err).Errorln("error checking for existing registry secret")
+		// }
+		// var count int64
+		// if err := row.Scan(&count); err != nil {
+		// 	log.WithError(err).Errorln("error getting count of existing registry secrets")
+		// }
+		//
+		// // This is BAD
+		// if count > 1 {
+		// 	err = errors.New("duplicate .dockerconfigjson secrets exist for this repo in the target db")
+		// 	log.WithError(err).Errorln("registry migration failed due to data issue")
+		// 	return err
+		// }
+		//
+		// if count > 0 {
+		// 	// meddler's update is too much work to use here
+		// 	result, err := tx.Exec(
+		// 		"UPDATE secrets SET secret_data = ? WHERE secret_name = ? AND secret_repo_id = ? LIMIT 1",
+		// 		registryV1.Data,
+		// 		registryV1.Name,
+		// 		registryV1.RepoID
+		// 	)
+		// 	if err != nil {
+		// 		log.WithError(err).Errorln("error updating existing registry configuration")
+		// 		return err
+		// 	}
+		// 	rows, err := result.RowsAffected()
+		// 	if err != nil {
+		// 		log.WithError(err).Errorln("couldn't get resulting rows")
+		// 	} else if rows == 1 {
+		// 		log.Debugln("successfully updated existing secret")
+		// 	}
+		// }
+
+		var insert bool
+		existing := &RegistryV1{}
+		err = meddler.QueryRow(tx, existing, registryFindExistingQuery, registryV1.RepoID, registryV1.Name)
+		if err != nil && err.Error() == "sql: no rows in result set" {
+			// perform an insert if we didn't find an existing secret for this repo
+			insert = true
+			log.Debugln("inserting new registry secret")
+		} else if err != nil {
+			log.WithError(err).Errorln("error querying for existing registry credentials")
 		}
+
+		if insert {
+			if err := meddler.Insert(tx, "secrets", registryV1); err != nil {
+				log.WithError(err).Errorln("failed to insert new registry credential secret")
+				return err
+			}
+		} else {
+			// we're just updating the data value of the existing registry secret in case it changed
+			existing.Data = registryV1.Data
+			if err := meddler.Update(tx, "secrets", existing); err != nil {
+				log.WithError(err).Errorln("failed to update exisitng registry credential secret")
+				return err
+			}
+		}
+
 
 		log.Debugln("migration complete")
 	}
@@ -97,4 +154,8 @@ SELECT
 	registry.*
 FROM registry INNER JOIN repos ON (repo_id = registry_repo_id)
 WHERE repo_user_id > 0
+`
+
+const registryFindExistingQuery = `
+SELECT * FROM secrets WHERE secret_repo_id = ? AND secret_name = ?
 `
