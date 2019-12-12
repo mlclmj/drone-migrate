@@ -70,7 +70,8 @@ func MigrateSecrets(source, target *sql.DB) error {
 			}
 		} else {
 			log.Debugln("updating existing secret")
-			if err := meddler.Update(tx, "secrets", secretV1); err != nil {
+			update := (*SecretV1Update)(secretV1)
+			if err := meddler.Update(tx, "secrets", update); err != nil {
 				log.WithError(err).Errorln("failed to update existing secret")
 				return err
 			}

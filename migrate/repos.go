@@ -104,7 +104,8 @@ func MigrateRepos(source, target *sql.DB) error {
 			}
 		} else {
 			log.Debugln("updating existing repo")
-			if err := meddler.Update(tx, "repos", repoV1); err != nil {
+			update := (*RepoV1Update)(repoV1)
+			if err := meddler.Update(tx, "repos", update); err != nil {
 				log.WithError(err).Errorln("failed to update existing repo")
 				return err
 			}

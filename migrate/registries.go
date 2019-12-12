@@ -100,6 +100,7 @@ func MigrateRegistries(source, target *sql.DB) error {
 		} else {
 			log.Debugln("updating existing registry secret")
 			// we're just updating the data value of the existing registry secret in case it changed
+			// the update method works here because the pk is explicitly marked in the struct/not set from the source datasource
 			existing.Data = registryV1.Data
 			if err := meddler.Update(tx, "secrets", existing); err != nil {
 				log.WithError(err).Errorln("failed to update exisitng registry credential secret")
