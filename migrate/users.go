@@ -81,7 +81,26 @@ func MigrateUsers(source, target *sql.DB) error {
 			}
 		} else {
 			log.Debugln("updating existing user")
-			if err := meddler.Update(tx, "users", userV1); err != nil {
+			// this has to be done because the update method requires the pk to be marked.
+			update := &UserV1Update{
+				ID: userV1.ID,
+				Login: userV1.Login,
+				Email: userV1.Email,
+				Machine: userV1.Machine,
+				Admin: userV1.Admin,
+				Active: userV1.Active,
+				Avatar: userV1.Avatar,
+				Syncing: userV1.Syncing,
+				Synced: userV1.Synced,
+				Created: userV1.Created,
+				Updated: userV1.Updated,
+				LastLogin: userV1.LastLogin,
+				Token: userV1.Token,
+				Refresh: userV1.Refresh,
+				Expiry: userV1.Expiry,
+				Hash: userV1.Hash,
+			}
+			if err := meddler.Update(tx, "users", update); err != nil {
 				log.WithError(err).Errorln("failed to update existing user")
 				return err
 			}

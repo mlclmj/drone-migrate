@@ -41,6 +41,26 @@ type (
 		Hash      string `meddler:"user_hash"`
 	}
 
+	// Identical to userV1 but with PK marked for meddler's update method
+	UserV1Update struct {
+		ID        int64  `meddler:"user_id,pk"`
+		Login     string `meddler:"user_login"`
+		Email     string `meddler:"user_email"`
+		Machine   bool   `meddler:"user_machine"`
+		Admin     bool   `meddler:"user_admin"`
+		Active    bool   `meddler:"user_active"`
+		Avatar    string `meddler:"user_avatar"`
+		Syncing   bool   `meddler:"user_syncing"`
+		Synced    int64  `meddler:"user_synced"`
+		Created   int64  `meddler:"user_created"`
+		Updated   int64  `meddler:"user_updated"`
+		LastLogin int64  `meddler:"user_last_login"`
+		Token     string `meddler:"user_oauth_token"`
+		Refresh   string `meddler:"user_oauth_refresh"`
+		Expiry    int64  `meddler:"user_oauth_expiry"`
+		Hash      string `meddler:"user_hash"`
+	}
+
 	// RepoV0 is a Drone 0.x repository.
 	RepoV0 struct {
 		ID          int64  `meddler:"repo_id"`
