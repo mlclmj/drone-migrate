@@ -239,6 +239,55 @@ func ActivateRepositories(db *sql.DB, client drone.Client) error {
 	return result
 }
 
+func ActivateReposPreflight(db *sql.DB, client drone.Client) error {
+	repos := []*RepoV1{}
+	var result error
+
+	if err := meddler.QueryAll(db, &repos, repoActivateQuery); err != nil {
+		return err
+	}
+
+	logrus.Infoln("begin repository activation preflighting")
+
+	for _, repo := range repos {
+		log := logrus.WithFields(logrus.Fields{
+			"repo": repo.Slug,
+		})
+		if !repo.Active {
+			// https://discourse.drone.io/t/drone-migrates-repoactivatequery-is-invalid/5156
+			continue
+		}
+
+		log.Debugln("preflighting repo activation")
+
+		user := &UserV1{}
+
+		if err := meddler.QueryRow(db, user, fmt.Sprintf(userIdentifierQuery, repo.UserID)); err != nil {
+			log.WithError(err).Errorf("failed to get repository owner")
+			multierror.Append(result, err)
+			continue
+		}
+
+		log = log.WithField("owner", user.Login)
+
+		req, err := http.NewRequest("GET", fmt.Sprintf("http://api.github.com/repos/%s/%s/readme", repo.Namespace, repo.Name), nil)
+		if err != nil {
+			log.WithError(err).Errorf("error creating the request")
+		}
+		req.Header.Add("Authorization", fmt.Sprintf("token %s", user.Token))
+		if _, err := client.Do(req); err != nil {
+			log.WithError(err).Errorf("preflight activation failed")
+			multierror.Append(result, err)
+			continue
+		}
+
+		log.Debugln("successfully preflighted activation")
+	}
+
+	logrus.Infoln("repository activation preflight complete")
+	return result
+}
+
 // RemoveRenamed removes repositories that have been renamed
 // or cannot be found in the remote system.
 func RemoveRenamed(db *sql.DB, client *scm.Client) error {
