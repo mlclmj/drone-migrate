@@ -259,8 +259,6 @@ func ActivateReposPreflight(db *sql.DB, client drone.Client) error {
 			continue
 		}
 
-		log.Debugln("preflighting repo activation")
-
 		user := &UserV1{}
 
 		if err := meddler.QueryRow(db, user, fmt.Sprintf(userIdentifierQuery, repo.UserID)); err != nil {
@@ -284,7 +282,6 @@ func ActivateReposPreflight(db *sql.DB, client drone.Client) error {
 			continue
 		}
 
-		log.Debugln("successfully preflighted activation")
 	}
 
 	logrus.Infoln("repository activation preflight complete")
