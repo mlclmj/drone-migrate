@@ -494,6 +494,25 @@ func main() {
 			},
 		},
 		{
+			Name:  "preflight-repos",
+			Usage: "preflight repository activation",
+			Action: func(c *cli.Context) error {
+				target, err := sql.Open(
+					c.GlobalString("target-database-driver"),
+					c.GlobalString("target-database-datasource"),
+				)
+
+				if err != nil {
+					return err
+				}
+
+				return migrate.ActivateReposPreflight(
+					target,
+					drone.New(c.GlobalString("drone-server")),
+				)
+			},
+		},
+		{
 			Name:  "dump-tokens",
 			Usage: "dump user tokens to stdout",
 			Action: func(c *cli.Context) error {
