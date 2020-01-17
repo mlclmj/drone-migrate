@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"net/http"
 	"time"
 
 	"github.com/dchest/uniuri"
@@ -270,12 +271,14 @@ func ActivateReposPreflight(db *sql.DB, client drone.Client) error {
 
 		log = log.WithField("owner", user.Login)
 
+		hc := &http.Client{}
+
 		req, err := http.NewRequest("GET", fmt.Sprintf("http://api.github.com/repos/%s/%s/readme", repo.Namespace, repo.Name), nil)
 		if err != nil {
 			log.WithError(err).Errorf("error creating the request")
 		}
 		req.Header.Add("Authorization", fmt.Sprintf("token %s", user.Token))
-		if _, err := client.Do(req); err != nil {
+		if _, err := hc.Do(req); err != nil {
 			log.WithError(err).Errorf("preflight activation failed")
 			multierror.Append(result, err)
 			continue
