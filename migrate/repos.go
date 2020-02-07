@@ -48,6 +48,12 @@ func MigrateRepos(source, target *sql.DB) error {
 
 		log.Debugln("migrate repository")
 
+		if repoV0.Owner == "NYTimes" {
+			log.Debugln("lowercasing repo: " + repoV0.FullName)
+			repoV0.Owner = "nytimes"
+			repoV0.FullName = "nytimes/" + repoV0.Name
+		}
+
 		repoV1 := &RepoV1{
 			ID:         repoV0.ID,
 			UserID:     repoV0.UserID,
@@ -259,6 +265,8 @@ func ActivateReposPreflight(db *sql.DB, client drone.Client) error {
 			continue
 		}
 
+		log.Debugln("preflighting repo activation")
+
 		user := &UserV1{}
 
 		if err := meddler.QueryRow(db, user, fmt.Sprintf(userIdentifierQuery, repo.UserID)); err != nil {
@@ -282,6 +290,7 @@ func ActivateReposPreflight(db *sql.DB, client drone.Client) error {
 			continue
 		}
 
+		log.Debugln("successfully preflighted activation")
 	}
 
 	logrus.Infoln("repository activation preflight complete")
