@@ -179,7 +179,7 @@ func UpdateRepoIdentifiers(db *sql.DB, client *scm.Client) error {
 		}
 
 		if remoteRepo.Name != repo.Name || remoteRepo.Namespace != repo.Namespace {
-			log.Warnf("Skipping repo since the name doesn't match! local: %s/%s remote: %s/%s", remoteRepo.Namespace, remoteRepo.Name, repo.Namespace, repo.Name)
+			log.Warnf("Skipping repo since the name doesn't match! remote: %s/%s local: %s/%s", remoteRepo.Namespace, remoteRepo.Name, repo.Namespace, repo.Name)
 			continue
 		}
 
