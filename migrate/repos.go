@@ -179,7 +179,7 @@ func UpdateRepoIdentifiers(db *sql.DB, client *scm.Client) error {
 		}
 
 		if _, err := db.Exec(fmt.Sprintf(repoUpdateQuery, remoteRepo.ID, repo.ID)); err != nil {
-			log.WithError(err).Errorf("failed to update metadata")
+			log.WithError(err).Errorf("failed to update metadata with uid %s and repo id %d", remoteRepo.ID, repo.ID)
 			multierror.Append(result, err)
 		}
 
