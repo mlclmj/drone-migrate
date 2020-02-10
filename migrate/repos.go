@@ -178,6 +178,11 @@ func UpdateRepoIdentifiers(db *sql.DB, client *scm.Client) error {
 			continue
 		}
 
+		if remoteRepo.Name != repo.Name || remoteRepo.Namespace != repo.Namespace {
+			log.Warnf("Skipping repo since the name doesn't match! local: %s/%s remote: %s/%s", remoteRepo.Namespace, remoteRepo.Name, repo.Namespace, repo.Name)
+			continue
+		}
+
 		if _, err := db.Exec(fmt.Sprintf(repoUpdateQuery, remoteRepo.ID, repo.ID)); err != nil {
 			log.WithError(err).Errorf("failed to update metadata with uid %s and repo id %d", remoteRepo.ID, repo.ID)
 			multierror.Append(result, err)
