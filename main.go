@@ -118,6 +118,11 @@ func main() {
 			Usage:  "override the SCM token used to make some requests",
 			EnvVar: "TOKEN",
 		},
+		cli.StringFlag{
+			Name:   "orgs",
+			Usage:  "override the SCM token for specific namespaces",
+			EnvVar: "ORGS",
+		},
 	}
 
 	app.Before = func(c *cli.Context) error {
@@ -218,6 +223,7 @@ func main() {
 					provider   = c.GlobalString("scm-driver")
 					server     = c.GlobalString("scm-server")
 					token			 = c.GlobalString("token")
+					orgs			 = c.GlobalString("orgs")
 				)
 
 				logrus.Debugf("target database driver: %s", driver)
@@ -237,7 +243,7 @@ func main() {
 					return err
 				}
 
-				return migrate.UpdateRepoIdentifiers(target, client, token)
+				return migrate.UpdateRepoIdentifiers(target, client, token, orgs)
 			},
 		},
 		{

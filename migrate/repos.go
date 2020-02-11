@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/dchest/uniuri"
@@ -136,7 +137,7 @@ func MigrateRepos(source, target *sql.DB) error {
 // UpdateRepoIdentifiers updates the repository identifiers
 // from temporary values (assigned during migration) to the
 // value fetched from the source code management system.
-func UpdateRepoIdentifiers(db *sql.DB, client *scm.Client, overrideToken string) error {
+func UpdateRepoIdentifiers(db *sql.DB, client *scm.Client, overrideToken string, overrideOrgs string) error {
 	repos := []*RepoV1{}
 	var result error
 
@@ -145,6 +146,8 @@ func UpdateRepoIdentifiers(db *sql.DB, client *scm.Client, overrideToken string)
 	}
 
 	logrus.Infoln("updating repository metadata")
+
+	orgs := strings.Split(overrideOrgs, ",")
 
 	for _, repo := range repos {
 		log := logrus.WithFields(logrus.Fields{
@@ -159,10 +162,20 @@ func UpdateRepoIdentifiers(db *sql.DB, client *scm.Client, overrideToken string)
 			continue
 		}
 
-		var tok *scm.Token
+		var (
+			tok *scm.Token
+			override bool
+		)
 
-		if overrideToken != "" {
-			log.Infof("using an override token from the environment to make requests")
+		for _, org := range orgs {
+			if org == repo.Namespace {
+				override = true
+				break
+			}
+		}
+
+		if overrideToken != "" && override {
+			log = log.WithField("owner", "overridden by provided token")
 			tok = &scm.Token{
 				Token:   overrideToken,
 			}
