@@ -312,7 +312,7 @@ func ActivateReposPreflight(db *sql.DB, client drone.Client) error {
 			log.WithError(err).Errorf("error creating the request")
 		}
 		req.Header.Add("Authorization", fmt.Sprintf("token %s", user.Token))
-		if _, err := hc.Do(req); err != nil {
+		if resp, err := hc.Do(req); err != nil || resp.StatusCode != http.StatusOK {
 			log.WithError(err).Errorf("preflight activation failed")
 			multierror.Append(result, err)
 			continue
