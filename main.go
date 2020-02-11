@@ -113,6 +113,11 @@ func main() {
 			Usage:  "enable debug mode",
 			EnvVar: "DEBUG",
 		},
+		cli.StringFlag{
+			Name:   "token",
+			Usage:  "override the SCM token used to make some requests",
+			EnvVar: "TOKEN",
+		},
 	}
 
 	app.Before = func(c *cli.Context) error {
@@ -212,6 +217,7 @@ func main() {
 					datasource = c.GlobalString("target-database-datasource")
 					provider   = c.GlobalString("scm-driver")
 					server     = c.GlobalString("scm-server")
+					token			 = c.GlobalString("token")
 				)
 
 				logrus.Debugf("target database driver: %s", driver)
@@ -231,7 +237,7 @@ func main() {
 					return err
 				}
 
-				return migrate.UpdateRepoIdentifiers(target, client)
+				return migrate.UpdateRepoIdentifiers(target, client, token)
 			},
 		},
 		{

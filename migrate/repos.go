@@ -136,7 +136,7 @@ func MigrateRepos(source, target *sql.DB) error {
 // UpdateRepoIdentifiers updates the repository identifiers
 // from temporary values (assigned during migration) to the
 // value fetched from the source code management system.
-func UpdateRepoIdentifiers(db *sql.DB, client *scm.Client) error {
+func UpdateRepoIdentifiers(db *sql.DB, client *scm.Client, overrideToken string) error {
 	repos := []*RepoV1{}
 	var result error
 
@@ -159,15 +159,27 @@ func UpdateRepoIdentifiers(db *sql.DB, client *scm.Client) error {
 			continue
 		}
 
-		log = log.WithField("owner", user.Login)
+		var tok *scm.Token
 
-		tok := &scm.Token{
-			Token:   user.Token,
-			Refresh: user.Refresh,
+		if overrideToken != "" {
+			log.Infof("using an override token from the environment to make requests")
+			tok = &scm.Token{
+				Token:   overrideToken,
+				Refresh: "",
+				Expires: 0,
+			}
+		} else {
+			log = log.WithField("owner", user.Login)
+			tok := &scm.Token{
+				Token:   user.Token,
+				Refresh: user.Refresh,
+			}
+			if user.Expiry > 0 {
+				tok.Expires = time.Unix(user.Expiry, 0)
+			}
 		}
-		if user.Expiry > 0 {
-			tok.Expires = time.Unix(user.Expiry, 0)
-		}
+
+
 		ctx := scm.WithContext(context.Background(), tok)
 
 		remoteRepo, _, err := client.Repositories.Find(ctx, scm.Join(repo.Namespace, repo.Name))
