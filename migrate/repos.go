@@ -165,8 +165,6 @@ func UpdateRepoIdentifiers(db *sql.DB, client *scm.Client, overrideToken string)
 			log.Infof("using an override token from the environment to make requests")
 			tok = &scm.Token{
 				Token:   overrideToken,
-				Refresh: "",
-				Expires: 0,
 			}
 		} else {
 			log = log.WithField("owner", user.Login)
