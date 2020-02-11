@@ -181,7 +181,7 @@ func UpdateRepoIdentifiers(db *sql.DB, client *scm.Client, overrideToken string,
 			}
 		} else {
 			log = log.WithField("owner", user.Login)
-			tok := &scm.Token{
+			tok = &scm.Token{
 				Token:   user.Token,
 				Refresh: user.Refresh,
 			}
