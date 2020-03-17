@@ -109,6 +109,8 @@ type (
 		Protected   bool   `meddler:"repo_protected"`
 		IgnoreForks bool   `meddler:"repo_no_forks"`
 		IgnorePulls bool   `meddler:"repo_no_pulls"`
+		CancelPulls bool   `meddler:"repo_cancel_pulls"`
+		CancelPush  bool   `meddler:"repo_cancel_push"`
 		Timeout     int64  `meddler:"repo_timeout"`
 		Counter     int64  `meddler:"repo_counter"`
 		Synced      int64  `meddler:"repo_synced"`
@@ -384,6 +386,17 @@ type (
 	InsertResponse struct {
 		OID 	int64	`meddler:"oid"`
 		Count	int64	`meddler:"count"`
+	}
+
+	PermV1 struct {
+		UserID  int64  `meddler:"perm_user_id"`
+		RepoUID string `meddler:"perm_repo_uid"`
+		Read    bool   `meddler:"perm_read"`
+		Write   bool   `meddler:"perm_write"`
+		Admin   bool   `meddler:"perm_admin"`
+		Synced  int64  `meddler:"perm_synced"`
+		Created int64  `meddler:"perm_created"`
+		Updated int64  `meddler:"perm_updated"`
 	}
 )
 

@@ -92,6 +92,58 @@ func MigrateSecrets(source, target *sql.DB) error {
 	return tx.Commit()
 }
 
+// EncryptSecrets is a helper function that encrypts all database
+// secrets after being inserted into the Drone database.
+func EncryptSecrets(target *sql.DB, key string) error {
+	block, err := parseKey(key)
+	if err != nil {
+		logrus.WithError(err).Errorln("cannot read encryption key")
+		return err
+	}
+
+	secretsV1 := []*SecretV1{}
+
+	if err := meddler.QueryAll(target, &secretsV1, secretListQuery); err != nil {
+		return err
+	}
+
+	logrus.Infof("encrypting %d secrets", len(secretsV1))
+	tx, err := target.Begin()
+
+	if err != nil {
+		return err
+	}
+
+	defer tx.Rollback()
+
+	updateStmt := updateSecretStmt
+	if meddler.Default == meddler.PostgreSQL {
+		updateStmt = updateSecretStmtPostgres
+	}
+
+	for _, secretV1 := range secretsV1 {
+		ciphertext, err := encrypt(block, secretV1.Data)
+		if err != nil {
+			logrus.WithError(err).Errorln("encryption failed")
+			return err
+		}
+
+		secretV1.Data = string(ciphertext)
+		if _, err := tx.Exec(updateStmt, secretV1.Data, secretV1.ID); err != nil {
+			logrus.WithError(err).Errorln("update failed")
+			return err
+		}
+	}
+
+	logrus.Infof("encryption complete")
+	return tx.Commit()
+}
+
+const secretListQuery = `
+SELECT *
+FROM secrets
+`
+
 const secretImportQuery = `
 SELECT secrets.*
 FROM secrets
@@ -108,4 +160,16 @@ WHERE repo_slug = '%s'
 const updateSecretsSeq = `
 ALTER SEQUENCE secrets_secret_id_seq
 RESTART WITH %d
+`
+
+const updateSecretStmt = `
+UPDATE secrets
+SET secret_data = ?
+WHERE secret_id = ?
+`
+
+const updateSecretStmtPostgres = `
+UPDATE secrets
+SET secret_data = $1
+WHERE secret_id = $2
 `
